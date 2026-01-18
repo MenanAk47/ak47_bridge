@@ -1,0 +1,60 @@
+Bridge.GetGangName = function()
+    if GetResourceState('ak47_gangs') == 'started' or GetResourceState('ak47_gangs') == 'uninitialized' then
+        local gang = exports['ak47_gangs']:GetPlayerGang()
+        return gang and gang.tag
+    elseif GetResourceState('ak47_qb_gangs') == 'started' or GetResourceState('ak47_qb_gangs') == 'uninitialized' then
+        local gang = exports['ak47_qb_gangs']:GetPlayerGang()
+        return gang and gang.tag
+    elseif GetResourceState('ak47_territories') == 'started' or GetResourceState('ak47_territories') == 'uninitialized' then
+        local gang = exports['ak47_territories']:GetPlayerGang()
+        return gang and gang.tag
+    elseif GetResourceState('ak47_qb_territories') == 'started' or GetResourceState('ak47_qb_territories') == 'uninitialized' then
+        local gang = exports['ak47_qb_territories']:GetPlayerGang()
+        return gang and gang.tag
+    end
+
+    if Config.Framework == 'qb' or Config.Framework == 'qbx' then
+        return PlayerData and PlayerData.gang and PlayerData.gang.name
+    end
+
+    return nil
+end
+
+Bridge.GetGangRank = function()
+    if GetResourceState('ak47_gangs') == 'started' or GetResourceState('ak47_gangs') == 'uninitialized' then
+        local gang = exports['ak47_gangs']:GetPlayerGang()
+        return gang and gang.rankid
+    elseif GetResourceState('ak47_qb_gangs') == 'started' or GetResourceState('ak47_qb_gangs') == 'uninitialized' then
+        local gang = exports['ak47_qb_gangs']:GetPlayerGang()
+        return gang and gang.rankid
+    elseif GetResourceState('ak47_territories') == 'started' or GetResourceState('ak47_territories') == 'uninitialized' then
+        local gang = exports['ak47_territories']:GetPlayerGang()
+        return gang and gang.rankid
+    elseif GetResourceState('ak47_qb_territories') == 'started' or GetResourceState('ak47_qb_territories') == 'uninitialized' then
+        local gang = exports['ak47_qb_territories']:GetPlayerGang()
+        return gang and gang.rankid
+    end
+
+    if Config.Framework == 'qb' or Config.Framework == 'qbx' then
+        return PlayerData and PlayerData.gang and PlayerData.gang.grade.level
+    end
+
+    return nil
+end
+
+Bridge.GetGangList = function()
+    if GetResourceState('ak47_gangs') == 'started' or 
+        GetResourceState('ak47_qb_gangs') == 'started' or 
+        GetResourceState('ak47_territories') == 'started' or 
+        GetResourceState('ak47_qb_territories') == 'started' then
+        return lib.callback.await('ak47_bridge:getakganglist')
+    end
+
+    if Config.Framework == 'qb' then
+        return QBCore.Shared.Gangs
+    elseif Config.Framework == 'qbx' then
+        return exports.qbx_core:GetGangs()
+    end
+
+    return {}
+end
