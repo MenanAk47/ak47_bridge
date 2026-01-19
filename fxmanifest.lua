@@ -12,6 +12,8 @@ shared_scripts {
 client_scripts {
     "framework/**/client/*.lua",
     "integration/client/*.lua",
+
+    "client/*.lua",
 }
 
 server_scripts {
@@ -19,6 +21,8 @@ server_scripts {
     
     "framework/**/server/*.lua",
     "integration/server/*.lua",
+
+    "server/*.lua",
 }
 
 escrow_ignore {
