@@ -1,3 +1,27 @@
+local registered = {}
+
+local function getLabels(options)
+    local labels = {}
+    local items = options
+    
+    if options.options then
+        items = options.options
+    end
+
+    for _, v in pairs(items) do
+        if type(v) == 'table' and v.label then
+            labels[#labels+1] = v.label
+        end
+    end
+    return labels
+end
+
+local function register(resource, type, data)
+    if not resource then return end
+    if not registered[resource] then registered[resource] = {} end
+    table.insert(registered[resource], { type = type, data = data })
+end
+
 local function convert(options)
     local distance = options.distance
     options = options.options
@@ -122,6 +146,7 @@ local function convert(options)
 end
 
 Bridge.AddBoxZone = function(name, center, length, width, options, targetoptions)
+    local resource = GetInvokingResource()
     if GetResourceState('ox_target') == 'started' then
         local z = center.z
         if not options.minZ then options.minZ = -100 end
@@ -130,7 +155,7 @@ Bridge.AddBoxZone = function(name, center, length, width, options, targetoptions
             z = z + math.abs(options.maxZ - options.minZ) / 2
             center = vec3(center.x, center.y, z)
         end
-        return exports.ox_target:addBoxZone({
+        local id = exports.ox_target:addBoxZone({
             name = name,
             coords = center,
             size = vec3(width, length, (options.useZ or not options.maxZ) and center.z or math.abs(options.maxZ - options.minZ)),
@@ -138,14 +163,21 @@ Bridge.AddBoxZone = function(name, center, length, width, options, targetoptions
             rotation = options.heading,
             options = convert(targetoptions),
         })
+        register(resource, 'zone', id)
+        return id
     elseif GetResourceState('qb-target') == 'started' then
-        return exports['qb-target']:AddBoxZone(name, center, length, width, options, targetoptions)
+        local id = exports['qb-target']:AddBoxZone(name, center, length, width, options, targetoptions)
+        register(resource, 'zone', name)
+        return id
     elseif GetResourceState('qtarget') == 'started' then
-        return exports['qtarget']:AddBoxZone(name, center, length, width, options, targetoptions)
+        local id = exports['qtarget']:AddBoxZone(name, center, length, width, options, targetoptions)
+        register(resource, 'zone', name)
+        return id
     end
 end
 
 Bridge.AddPolyZone = function(name, points, options, targetoptions)
+    local resource = GetInvokingResource()
     if GetResourceState('ox_target') == 'started' then
         local newPoints = table.create(#points, 0)
         local thickness = math.abs(options.maxZ - options.minZ)
@@ -153,33 +185,46 @@ Bridge.AddPolyZone = function(name, points, options, targetoptions)
             local point = points[i]
             newPoints[i] = vec3(point.x, point.y, options.maxZ - (thickness / 2))
         end
-        return exports.ox_target:addPolyZone({
+        local id = exports.ox_target:addPolyZone({
             name = name,
             points = newPoints,
             thickness = thickness,
             debug = options.debugPoly,
             options = convert(targetoptions),
         })
+        register(resource, 'zone', id)
+        return id
     elseif GetResourceState('qb-target') == 'started' then
-        return exports['qb-target']:AddPolyZone(name, points, options, targetoptions)
+        local id = exports['qb-target']:AddPolyZone(name, points, options, targetoptions)
+        register(resource, 'zone', name)
+        return id
     elseif GetResourceState('qtarget') == 'started' then
-        return exports['qtarget']:AddPolyZone(name, points, options, targetoptions)
+        local id = exports['qtarget']:AddPolyZone(name, points, options, targetoptions)
+        register(resource, 'zone', name)
+        return id
     end
 end
 
 Bridge.AddCircleZone = function(name, center, radius, options, targetoptions)
+    local resource = GetInvokingResource()
     if GetResourceState('ox_target') == 'started' then
-        return exports.ox_target:addSphereZone({
+        local id = exports.ox_target:addSphereZone({
             name = name,
             coords = center,
             radius = radius,
             debug = options.debugPoly,
             options = convert(targetoptions),
         })
+        register(resource, 'zone', id)
+        return id
     elseif GetResourceState('qb-target') == 'started' then
-        return exports['qb-target']:AddCircleZone(name, center, radius, options, targetoptions)
+        local id = exports['qb-target']:AddCircleZone(name, center, radius, options, targetoptions)
+        register(resource, 'zone', name)
+        return id
     elseif GetResourceState('qtarget') == 'started' then
-        return exports['qtarget']:AddCircleZone(name, center, radius, options, targetoptions)
+        local id = exports['qtarget']:AddCircleZone(name, center, radius, options, targetoptions)
+        register(resource, 'zone', name)
+        return id
     end
 end
 
@@ -187,13 +232,16 @@ Bridge.RemoveZone = function(id)
     if GetResourceState('ox_target') == 'started' then
         exports.ox_target:removeZone(id, true)
     elseif GetResourceState('qb-target') == 'started' then
-        exports['qb-target']:RemoveZone(id)
+        exports['qb-target']:RemoveZone(id.name or id)
     elseif GetResourceState('qtarget') == 'started' then
-        exports['qtarget']:RemoveZone(id)
+        exports['qtarget']:RemoveZone(id.name or id)
     end
 end
 
 Bridge.AddTargetBone = function(bones, options)
+    local resource = GetInvokingResource()
+    local labels = getLabels(options)
+    
     if GetResourceState('ox_target') == 'started' then
         if type(bones) ~= 'table' then bones = { bones } end
         options = convert(options)
@@ -201,14 +249,20 @@ Bridge.AddTargetBone = function(bones, options)
             v.bones = bones
         end
         exports.ox_target:addGlobalVehicle(options)
+        register(resource, 'globalVehicle', { labels = labels })
     elseif GetResourceState('qb-target') == 'started' then
-        return exports['qb-target']:AddTargetBone(bones, options)
+        exports['qb-target']:AddTargetBone(bones, options)
+        register(resource, 'bone', { bones = bones, labels = labels })
     elseif GetResourceState('qtarget') == 'started' then
-        return exports['qtarget']:AddTargetBone(bones, options)
+        exports['qtarget']:AddTargetBone(bones, options)
+        register(resource, 'bone', { bones = bones, labels = labels })
     end
 end
 
 Bridge.AddTargetEntity = function(entities, options)
+    local resource = GetInvokingResource()
+    local labels = getLabels(options)
+
     if GetResourceState('ox_target') == 'started' then
         if type(entities) ~= 'table' then entities = { entities } end
         options = convert(options)
@@ -220,10 +274,13 @@ Bridge.AddTargetEntity = function(entities, options)
                 exports.ox_target:addLocalEntity(entity, options)
             end
         end
+        register(resource, 'entity', { entities = entities, labels = labels })
     elseif GetResourceState('qb-target') == 'started' then
-        return exports['qb-target']:AddTargetEntity(entities, options)
+        exports['qb-target']:AddTargetEntity(entities, options)
+        register(resource, 'entity', { entities = entities, labels = labels })
     elseif GetResourceState('qtarget') == 'started' then
-        return exports['qtarget']:AddTargetEntity(entities, options)
+        exports['qtarget']:AddTargetEntity(entities, options)
+        register(resource, 'entity', { entities = entities, labels = labels })
     end
 end
 
@@ -246,12 +303,18 @@ Bridge.RemoveTargetEntity = function(entities, labels)
 end
 
 Bridge.AddTargetModel = function(models, options)
+    local resource = GetInvokingResource()
+    local labels = getLabels(options)
+
     if GetResourceState('ox_target') == 'started' then
         exports.ox_target:addModel(models, convert(options))
+        register(resource, 'model', { models = models, labels = labels })
     elseif GetResourceState('qb-target') == 'started' then
-        return exports['qb-target']:AddTargetModel(models, options)
+        exports['qb-target']:AddTargetModel(models, options)
+        register(resource, 'model', { models = models, labels = labels })
     elseif GetResourceState('qtarget') == 'started' then
-        return exports['qtarget']:AddTargetModel(models, options)
+        exports['qtarget']:AddTargetModel(models, options)
+        register(resource, 'model', { models = models, labels = labels })
     end
 end
 
@@ -266,12 +329,18 @@ Bridge.RemoveTargetModel = function(models, labels)
 end
 
 Bridge.AddGlobalPed = function(options)
+    local resource = GetInvokingResource()
+    local labels = getLabels(options)
+
     if GetResourceState('ox_target') == 'started' then
         exports.ox_target:addGlobalPed(convert(options))
+        register(resource, 'globalPed', { labels = labels })
     elseif GetResourceState('qb-target') == 'started' then
-        return exports['qb-target']:AddGlobalPed(options)
+        exports['qb-target']:AddGlobalPed(options)
+        register(resource, 'globalPed', { labels = labels })
     elseif GetResourceState('qtarget') == 'started' then
-        return exports['qtarget']:AddGlobalPed(options)
+        exports['qtarget']:AddGlobalPed(options)
+        register(resource, 'globalPed', { labels = labels })
     end
 end
 
@@ -286,12 +355,18 @@ Bridge.RemoveGlobalPed = function(labels)
 end
 
 Bridge.AddGlobalVehicle = function(options)
+    local resource = GetInvokingResource()
+    local labels = getLabels(options)
+
     if GetResourceState('ox_target') == 'started' then
         exports.ox_target:addGlobalVehicle(convert(options))
+        register(resource, 'globalVehicle', { labels = labels })
     elseif GetResourceState('qb-target') == 'started' then
-        return exports['qb-target']:AddGlobalVehicle(options)
+        exports['qb-target']:AddGlobalVehicle(options)
+        register(resource, 'globalVehicle', { labels = labels })
     elseif GetResourceState('qtarget') == 'started' then
-        return exports['qtarget']:AddGlobalVehicle(options)
+        exports['qtarget']:AddGlobalVehicle(options)
+        register(resource, 'globalVehicle', { labels = labels })
     end
 end
 
@@ -306,12 +381,18 @@ Bridge.RemoveGlobalVehicle = function(labels)
 end
 
 Bridge.AddGlobalObject = function(options)
+    local resource = GetInvokingResource()
+    local labels = getLabels(options)
+
     if GetResourceState('ox_target') == 'started' then
         exports.ox_target:addGlobalObject(convert(options))
+        register(resource, 'globalObject', { labels = labels })
     elseif GetResourceState('qb-target') == 'started' then
-        return exports['qb-target']:AddGlobalObject(options)
+        exports['qb-target']:AddGlobalObject(options)
+        register(resource, 'globalObject', { labels = labels })
     elseif GetResourceState('qtarget') == 'started' then
-        return exports['qtarget']:AddGlobalObject(options)
+        exports['qtarget']:AddGlobalObject(options)
+        register(resource, 'globalObject', { labels = labels })
     end
 end
 
@@ -326,12 +407,18 @@ Bridge.RemoveGlobalObject = function(labels)
 end
 
 Bridge.AddGlobalPlayer = function(options)
+    local resource = GetInvokingResource()
+    local labels = getLabels(options)
+
     if GetResourceState('ox_target') == 'started' then
         exports.ox_target:addGlobalPlayer(convert(options))
+        register(resource, 'globalPlayer', { labels = labels })
     elseif GetResourceState('qb-target') == 'started' then
-        return exports['qb-target']:AddGlobalPlayer(options)
+        exports['qb-target']:AddGlobalPlayer(options)
+        register(resource, 'globalPlayer', { labels = labels })
     elseif GetResourceState('qtarget') == 'started' then
-        return exports['qtarget']:AddGlobalPlayer(options)
+        exports['qtarget']:AddGlobalPlayer(options)
+        register(resource, 'globalPlayer', { labels = labels })
     end
 end
 
@@ -344,3 +431,36 @@ Bridge.RemoveGlobalPlayer = function(labels)
         return exports['qtarget']:RemoveGlobalPlayer(labels)
     end
 end
+
+AddEventHandler('onResourceStop', function(resource)
+    if not registered[resource] then return end
+    
+    for _, item in ipairs(registered[resource]) do
+        local type = item.type
+        local data = item.data
+
+        if type == 'zone' then
+            Bridge.RemoveZone(data)
+        elseif type == 'model' then
+            Bridge.RemoveTargetModel(data.models, data.labels)
+        elseif type == 'entity' then
+            Bridge.RemoveTargetEntity(data.entities, data.labels)
+        elseif type == 'globalPed' then
+            Bridge.RemoveGlobalPed(data.labels)
+        elseif type == 'globalVehicle' then
+            Bridge.RemoveGlobalVehicle(data.labels)
+        elseif type == 'globalObject' then
+            Bridge.RemoveGlobalObject(data.labels)
+        elseif type == 'globalPlayer' then
+            Bridge.RemoveGlobalPlayer(data.labels)
+        elseif type == 'bone' then
+            if GetResourceState('qb-target') == 'started' then
+                exports['qb-target']:RemoveTargetBone(data.bones, data.labels)
+            elseif GetResourceState('qtarget') == 'started' then
+                exports['qtarget']:RemoveTargetBone(data.bones, data.labels)
+            end
+        end
+    end
+
+    registered[resource] = nil
+end)

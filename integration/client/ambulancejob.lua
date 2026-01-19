@@ -93,5 +93,5 @@ Bridge.IsDead = function(target)
 end
 
 Bridge.IsIncapacitated = function(target)
-    return IsLastStand(target) or IsDead(target)
+    return Bridge.IsLastStand(target) or Bridge.IsDead(target)
 end
