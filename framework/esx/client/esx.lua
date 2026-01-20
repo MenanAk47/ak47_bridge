@@ -18,19 +18,16 @@ PlayerLoaded = false
 RegisterNetEvent('esx:playerLoaded', function(xPlayer)
     PlayerData = xPlayer
     PlayerLoaded = true
-
     TriggerEvent('ak47_bridge:OnPlayerLoaded', PlayerData)
 end)
 
 RegisterNetEvent('esx:setJob', function(job)
     PlayerData.job = job
-
     TriggerEvent('ak47_bridge:OnJobUpdate', job)
 end)
 
 RegisterNetEvent('esx:updatePlayerData', function(key, value)
     PlayerData[key] = value
-
     TriggerEvent('ak47_bridge:OnPlayerDataUpdate', PlayerData)
 end)
 
@@ -40,12 +37,14 @@ end)
 
 AddEventHandler('onResourceStart', function(resourceName)
     if resourceName == GetCurrentResourceName() then
-        if ESX.PlayerLoaded then
-            PlayerData = ESX.GetPlayerData()
+        local data = ESX.GetPlayerData()
+        if data and data.job then
+            PlayerData = data
             PlayerLoaded = true
-
-            TriggerEvent('ak47_bridge:OnPlayerLoaded', PlayerData)
         end
+    end
+    if PlayerLoaded then
+        TriggerEvent('ak47_bridge:OnPlayerLoaded', PlayerData)
     end
 end)
 

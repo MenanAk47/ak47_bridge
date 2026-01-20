@@ -17,31 +17,29 @@ PlayerLoaded = false
 RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function()
     PlayerData = exports.qbx_core:GetPlayerData()
     PlayerLoaded = true
-    
     TriggerEvent('ak47_bridge:OnPlayerLoaded', PlayerData)
 end)
 
 RegisterNetEvent('QBCore:Client:OnJobUpdate', function(JobInfo)
     PlayerData.job = JobInfo
-
     TriggerEvent('ak47_bridge:OnJobUpdate', job)
 end)
 
 RegisterNetEvent('QBCore:Player:SetPlayerData', function(val)
     PlayerData = val
-
     TriggerEvent('ak47_bridge:OnPlayerDataUpdate', PlayerData)
 end)
 
 AddEventHandler('onResourceStart', function(resourceName)
     if resourceName == GetCurrentResourceName() then
         local data = exports.qbx_core:GetPlayerData()
-        if data and data.citizenid then
+        if data and data.job then
             PlayerData = data
             PlayerLoaded = true
-
-            TriggerEvent('ak47_bridge:OnPlayerLoaded', PlayerData)
         end
+    end
+    if PlayerLoaded then
+        TriggerEvent('ak47_bridge:OnPlayerLoaded', PlayerData)
     end
 end)
 
