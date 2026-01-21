@@ -1,3 +1,4 @@
+if Config.Framework == 'auto' and GetResourceState('qbx_core') ~= 'missing' then return end
 if Config.Framework == 'auto' and GetResourceState('qb-core') == 'missing' then return end
 if Config.Framework ~= 'auto' and Config.Framework ~= 'qb' then return end
 Config.Framework = 'qb'

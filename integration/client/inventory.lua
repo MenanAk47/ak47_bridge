@@ -16,6 +16,7 @@ if Config.Inventory == 'auto' then
             if GetResourceState(script) == 'started' then
                 Config.Inventory = script
                 print(string.format("^2['INVENTORY']: %s^0", Config.Inventory))
+                RegisterInventoryEvents()
                 return
             end
         end
@@ -178,4 +179,18 @@ Bridge.GetItemImageLink = function(name, format)
         return 
     end
     return Bridge.GetInventoryImageLink() .. name .. (format or '.png')
+end
+
+RegisterInventoryEvents = function()
+    if Config.Inventory == 'ak47_inventory' or Config.Inventory == 'ak47_qb_inventory' then
+        RegisterNetEvent('ak47_inventory:onRemoveItem', function(item, amount, slot, has)
+            TriggerEvent('ak47_bridge:OnRemoveItem', item, has)
+        end)
+    elseif Config.Framework == 'esx' then
+        RegisterNetEvent('esx:removeInventoryItem', function(item, count)
+            TriggerEvent('ak47_bridge:OnRemoveItem', item, count)
+        end)
+    end
+    -- other detections are based on framework data set
+    -- check client/functions.lua
 end

@@ -90,7 +90,7 @@ end
 
 Bridge.GetJob = function(source)
     local Player = Bridge.GetPlayer(source)
-    return Player and Player.job
+    return Player and Player.PlayerData.job
 end
 
 Bridge.SetJob = function(source, job, grade)
@@ -267,7 +267,7 @@ end
 -- ====================================================================================
 
 Citizen.CreateThread(function()
-    local sharedVehicles = exports.qbx_core:GetSharedVehicles()
+    local sharedVehicles = exports.qbx_core:GetVehiclesByName()
     if sharedVehicles then
         for k, v in pairs(sharedVehicles) do
             Bridge.Vehicles[GetHashKey(v.model)] = v.name
