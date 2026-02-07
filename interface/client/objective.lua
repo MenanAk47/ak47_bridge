@@ -1,6 +1,6 @@
 local currentData = { title = "", text = "", visible = false }
 
-Interface.ShowObjective = function(title, text, position)
+Interface.ShowObjective = function(text, title, position)
     Interface.HideObjective()
 
     currentData.text = text
@@ -58,7 +58,7 @@ local text = {
     { "Cancel Creation <k>DEL<k>" } -- This renders as footer text
 }
 
-Bridge.ShowObjective("Editor Mode", text, "center")
+Bridge.ShowObjective(text, "Editor Mode", "center")
 
 
 
@@ -69,16 +69,16 @@ local text2 = {
         "Option Two <m>2<m>"
     }
 }
-Bridge.ShowObjective("Menu", text2, "right")
+Bridge.ShowObjective(text2, "Menu", "right")
 
 
 local text3 = {
     "Collect the evidence",
     "Escape the police"
 }
-Bridge.ShowObjective("Current Task", text3, "top")
+Bridge.ShowObjective(text3, "Current Task", "top")
 
 local text4 = "Collect the evidence"
-Bridge.ShowObjective("Current Task", text3, "top")
+Bridge.ShowObjective(text4, "Current Task", "top")
 
 ]]

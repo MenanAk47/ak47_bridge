@@ -1,6 +1,6 @@
 local currentTasks = {}
 
-Interface.ShowChecklist = function(title, tasks, position)
+Interface.ShowChecklist = function(tasks, title, position)
     Interface.HideChecklist()
 
     currentTasks = tasks or {}
