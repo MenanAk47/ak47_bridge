@@ -6,6 +6,7 @@ Interface.ShowChecklist = function(tasks, title, position)
     currentTasks = tasks or {}
     local title = title or Config.Defaults.Checklist.title
     local pos = position or Config.Defaults.Checklist.position
+    local hour = GetClockHours()
     local isNight = Config.Defaults.Checklist.nightEffect and (hour >= 21 or hour < 6)
     
     SendNUIMessage({

@@ -7,6 +7,7 @@ Interface.ShowObjective = function(text, title, position)
     currentData.title = title or Config.Defaults.Objective.title
     currentData.visible = true
     local pos = position or Config.Defaults.Objective.position
+    local hour = GetClockHours()
     local isNight = Config.Defaults.Objective.nightEffect and (hour >= 21 or hour < 6)
 
     SendNUIMessage({
